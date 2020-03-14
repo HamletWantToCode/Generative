@@ -31,13 +31,15 @@ hidden(d::VAE_Encoder, x) = d.f.(d.Wh*x .+ d.bh)
 mean(d::VAE_Encoder, h) = d.Wμ*h .+ d.bμ
 log_std(d::VAE_Encoder, h) = d.Wlogσ*h .+ d.blogσ
 
-function (d::VAE_Encoder)(x)
+function (d::VAE_Encoder)(rng::AbstractRNG, x)
 	h = hidden(d, x)
 	μ = mean(d, h)
 	logσ = log_std(d, h)
-	z = μ .+ exp.(logσ).*randn(eltype(d))
+	z = μ .+ exp.(logσ).*randn(rng, eltype(d), size(logσ))
 	z
 end
+(d::VAE_Encoder)(x) = (d::VAE_Encoder)(GLOBAL_RNG, x)
+
 
 function Base.show(io::IO, en::VAE_Encoder)
 	print(io, "VAE(", size(en.Wh, 2), ", ", size(en.Wh, 1), ", ", size(en.Wμ, 1))
